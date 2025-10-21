@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 
 interface Game {
   id: number;
@@ -26,8 +27,29 @@ interface Achievement {
   progress: number;
 }
 
+interface MarketItem {
+  id: number;
+  name: string;
+  type: 'avatar' | 'skin' | 'accessory' | 'effect';
+  price: number;
+  image: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  owned: boolean;
+}
+
+interface DonatePackage {
+  id: number;
+  name: string;
+  coins: number;
+  bonus: number;
+  popular?: boolean;
+  image: string;
+}
+
 const Index = () => {
   const [activeTab, setActiveTab] = useState('games');
+  const [coins, setCoins] = useState(2500);
+  const [dailyStreak, setDailyStreak] = useState(3);
 
   const games: Game[] = [
     {
@@ -121,6 +143,95 @@ const Index = () => {
     }
   ];
 
+  const donatePackages: DonatePackage[] = [
+    {
+      id: 1,
+      name: 'Стартовый',
+      coins: 500,
+      bonus: 0,
+      image: '💰'
+    },
+    {
+      id: 2,
+      name: 'Популярный',
+      coins: 1000,
+      bonus: 200,
+      popular: true,
+      image: '💎'
+    },
+    {
+      id: 3,
+      name: 'Премиум',
+      coins: 2500,
+      bonus: 750,
+      image: '👑'
+    },
+    {
+      id: 4,
+      name: 'Мега',
+      coins: 5000,
+      bonus: 2000,
+      image: '🚀'
+    }
+  ];
+
+  const [marketItems, setMarketItems] = useState<MarketItem[]>([
+    {
+      id: 1,
+      name: 'Космический Шлем',
+      type: 'accessory',
+      price: 250,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'rare',
+      owned: false
+    },
+    {
+      id: 2,
+      name: 'Неоновый Аватар',
+      type: 'avatar',
+      price: 500,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'epic',
+      owned: false
+    },
+    {
+      id: 3,
+      name: 'Плащ Героя',
+      type: 'skin',
+      price: 350,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'rare',
+      owned: true
+    },
+    {
+      id: 4,
+      name: 'Огненный Эффект',
+      type: 'effect',
+      price: 750,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'legendary',
+      owned: false
+    },
+    {
+      id: 5,
+      name: 'Киберочки',
+      type: 'accessory',
+      price: 150,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'common',
+      owned: false
+    },
+    {
+      id: 6,
+      name: 'Драконий Аватар',
+      type: 'avatar',
+      price: 1000,
+      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
+      rarity: 'legendary',
+      owned: false
+    }
+  ]);
+
   const playerStats = {
     name: 'ProGamer2024',
     level: 24,
@@ -128,6 +239,47 @@ const Index = () => {
     hoursPlayed: 342,
     achievements: 28,
     friends: 47
+  };
+
+  const rarityColors = {
+    common: 'bg-gray-500',
+    rare: 'bg-blue-500',
+    epic: 'bg-purple-500',
+    legendary: 'bg-gradient-to-r from-yellow-400 to-orange-500'
+  };
+
+  const rarityLabels = {
+    common: 'Обычный',
+    rare: 'Редкий',
+    epic: 'Эпический',
+    legendary: 'Легендарный'
+  };
+
+  const handleClaimDaily = () => {
+    const reward = 100 + dailyStreak * 50;
+    setCoins(coins + reward);
+    setDailyStreak(dailyStreak + 1);
+    toast.success(`🎁 Получено ${reward} FreeCoins! Серия: ${dailyStreak + 1} дней`);
+  };
+
+  const handleGetDonate = (pkg: DonatePackage) => {
+    const totalCoins = pkg.coins + pkg.bonus;
+    setCoins(coins + totalCoins);
+    toast.success(`🎉 Получено ${totalCoins} FreeCoins бесплатно!`);
+  };
+
+  const handleBuyItem = (item: MarketItem) => {
+    if (item.owned) {
+      toast.info('У вас уже есть этот предмет!');
+      return;
+    }
+    if (coins < item.price) {
+      toast.error('Недостаточно FreeCoins!');
+      return;
+    }
+    setCoins(coins - item.price);
+    setMarketItems(marketItems.map(i => i.id === item.id ? { ...i, owned: true } : i));
+    toast.success(`✨ Куплено: ${item.name}!`);
   };
 
   return (
@@ -158,6 +310,10 @@ const Index = () => {
               </Button>
             </nav>
             <div className="flex items-center gap-3">
+              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 px-4 py-2 text-base font-bold">
+                <Icon name="Coins" className="mr-2" size={18} />
+                {coins.toLocaleString()}
+              </Badge>
               <Button variant="outline" size="icon" className="rounded-full">
                 <Icon name="Bell" size={20} />
               </Button>
@@ -176,6 +332,14 @@ const Index = () => {
             <TabsTrigger value="games" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
               <Icon name="Gamepad2" className="mr-2" size={18} />
               Игры
+            </TabsTrigger>
+            <TabsTrigger value="market" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+              <Icon name="ShoppingBag" className="mr-2" size={18} />
+              Маркетплейс
+            </TabsTrigger>
+            <TabsTrigger value="donate" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+              <Icon name="Gift" className="mr-2" size={18} />
+              Донат
             </TabsTrigger>
             <TabsTrigger value="profile" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
               <Icon name="User" className="mr-2" size={18} />
@@ -241,6 +405,120 @@ const Index = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="market" className="space-y-6">
+            <Card className="border-2 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+              <CardContent className="p-8">
+                <h2 className="text-3xl font-bold mb-2">🛍️ Маркетплейс</h2>
+                <p className="text-lg opacity-90">Покупай крутые вещи за FreeCoins!</p>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {marketItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden border-2 rounded-3xl hover:shadow-xl transition-all duration-300">
+                  <div className="relative">
+                    <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
+                    <Badge className={`absolute top-4 right-4 ${rarityColors[item.rarity]} text-white border-0`}>
+                      {rarityLabels[item.rarity]}
+                    </Badge>
+                    {item.owned && (
+                      <Badge className="absolute top-4 left-4 bg-green-500 text-white border-0">
+                        <Icon name="Check" className="mr-1" size={14} />
+                        В инвентаре
+                      </Badge>
+                    )}
+                  </div>
+                  <CardContent className="p-5">
+                    <h4 className="font-bold text-lg mb-1">{item.name}</h4>
+                    <p className="text-sm text-muted-foreground mb-4 capitalize">{item.type === 'avatar' ? 'Аватар' : item.type === 'skin' ? 'Скин' : item.type === 'accessory' ? 'Аксессуар' : 'Эффект'}</p>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2 text-yellow-500 font-bold text-lg">
+                        <Icon name="Coins" size={20} />
+                        {item.price}
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                      onClick={() => handleBuyItem(item)}
+                      disabled={item.owned}
+                    >
+                      {item.owned ? (
+                        <>
+                          <Icon name="Check" className="mr-2" size={18} />
+                          Куплено
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="ShoppingCart" className="mr-2" size={18} />
+                          Купить
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="donate" className="space-y-6">
+            <Card className="border-2 rounded-3xl overflow-hidden">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-8 text-white">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-6xl">🎁</div>
+                  <div>
+                    <h2 className="text-3xl font-bold mb-2">Ежедневная Награда</h2>
+                    <p className="text-lg opacity-90">Серия: {dailyStreak} дней подряд</p>
+                  </div>
+                </div>
+                <Button 
+                  size="lg" 
+                  className="bg-white text-orange-500 hover:bg-white/90 rounded-full font-bold"
+                  onClick={handleClaimDaily}
+                >
+                  Забрать {100 + dailyStreak * 50} FreeCoins
+                  <Icon name="Gift" className="ml-2" size={20} />
+                </Button>
+              </div>
+            </Card>
+
+            <div>
+              <h3 className="text-2xl font-bold mb-6">💎 Бесплатный Донат</h3>
+              <p className="text-muted-foreground mb-6">Получи валюту абсолютно бесплатно! Никаких платежей!</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {donatePackages.map((pkg) => (
+                  <Card key={pkg.id} className={`overflow-hidden rounded-3xl border-2 transition-all duration-300 ${pkg.popular ? 'border-primary shadow-xl scale-105' : 'hover:shadow-xl'}`}>
+                    {pkg.popular && (
+                      <div className="bg-gradient-to-r from-primary to-secondary text-white text-center py-2 font-bold text-sm">
+                        ⭐ ПОПУЛЯРНЫЙ
+                      </div>
+                    )}
+                    <CardContent className="p-6 text-center">
+                      <div className="text-6xl mb-4">{pkg.image}</div>
+                      <h4 className="font-bold text-xl mb-2">{pkg.name}</h4>
+                      <div className="text-3xl font-bold mb-2 text-yellow-500">
+                        {pkg.coins.toLocaleString()}
+                      </div>
+                      {pkg.bonus > 0 && (
+                        <Badge className="mb-4 bg-green-500 text-white border-0">
+                          +{pkg.bonus} бонус
+                        </Badge>
+                      )}
+                      <div className="text-sm text-muted-foreground mb-4">
+                        Итого: {(pkg.coins + pkg.bonus).toLocaleString()} FreeCoins
+                      </div>
+                      <Button 
+                        className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                        onClick={() => handleGetDonate(pkg)}
+                      >
+                        Получить бесплатно
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
           <TabsContent value="profile" className="space-y-6">
             <Card className="border-2 rounded-3xl overflow-hidden">
               <div className="h-32 bg-gradient-to-r from-primary to-secondary"></div>
@@ -284,6 +562,34 @@ const Index = () => {
                       <div className="text-sm text-muted-foreground">Друзей</div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Package" size={24} />
+                  Мой инвентарь
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {marketItems.filter(item => item.owned).map((item) => (
+                    <div key={item.id} className="border-2 rounded-2xl p-4 text-center">
+                      <img src={item.image} alt={item.name} className="w-full h-24 object-cover rounded-xl mb-2" />
+                      <p className="font-semibold text-sm">{item.name}</p>
+                      <Badge className={`mt-2 ${rarityColors[item.rarity]} text-white border-0 text-xs`}>
+                        {rarityLabels[item.rarity]}
+                      </Badge>
+                    </div>
+                  ))}
+                  {marketItems.filter(item => item.owned).length === 0 && (
+                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                      <Icon name="Package" className="mx-auto mb-2" size={48} />
+                      <p>Инвентарь пуст. Купите вещи в маркетплейсе!</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
