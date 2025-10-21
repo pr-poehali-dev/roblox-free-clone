@@ -3,324 +3,308 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 
-interface Game {
-  id: number;
-  title: string;
-  author: string;
-  image: string;
-  rating: number;
-  plays: number;
-  category: string;
-}
-
-interface Achievement {
-  id: number;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  progress: number;
-}
-
-interface MarketItem {
+interface ClothingItem {
   id: number;
   name: string;
-  type: 'avatar' | 'skin' | 'accessory' | 'effect';
+  type: 'shirt' | 'pants' | 'hat' | 'shoes' | 'accessory';
   price: number;
   image: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  color: string;
   owned: boolean;
 }
 
-interface DonatePackage {
+interface RobuxPackage {
   id: number;
   name: string;
-  coins: number;
+  amount: number;
   bonus: number;
+  icon: string;
   popular?: boolean;
-  image: string;
+}
+
+interface LeaderboardPlayer {
+  id: number;
+  username: string;
+  robux: number;
+  level: number;
+  avatar: string;
+}
+
+interface User {
+  username: string;
+  robux: number;
+  level: number;
+  dailyStreak: number;
 }
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState('games');
-  const [coins, setCoins] = useState(2500);
-  const [dailyStreak, setDailyStreak] = useState(3);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('shop');
+  const [selectedClothing, setSelectedClothing] = useState<{
+    shirt?: ClothingItem;
+    pants?: ClothingItem;
+    hat?: ClothingItem;
+    shoes?: ClothingItem;
+  }>({});
 
-  const games: Game[] = [
-    {
-      id: 1,
-      title: 'Космическая Одиссея',
-      author: 'StarDev',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.8,
-      plays: 125400,
-      category: 'Приключения'
-    },
-    {
-      id: 2,
-      title: 'Гонки Будущего',
-      author: 'RaceMaster',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.6,
-      plays: 98200,
-      category: 'Гонки'
-    },
-    {
-      id: 3,
-      title: 'Битва Героев',
-      author: 'BattleStudio',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.9,
-      plays: 156800,
-      category: 'Экшен'
-    },
-    {
-      id: 4,
-      title: 'Лабиринт Загадок',
-      author: 'PuzzlePro',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.7,
-      plays: 82300,
-      category: 'Головоломки'
-    },
-    {
-      id: 5,
-      title: 'Мир Строителей',
-      author: 'BuildTeam',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.8,
-      plays: 201500,
-      category: 'Строительство'
-    },
-    {
-      id: 6,
-      title: 'Квест Драконов',
-      author: 'DragonForge',
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rating: 4.9,
-      plays: 178900,
-      category: 'РПГ'
-    }
+  const [user, setUser] = useState<User>({
+    username: 'Player2024',
+    robux: 1000,
+    level: 15,
+    dailyStreak: 3
+  });
+
+  const robuxPackages: RobuxPackage[] = [
+    { id: 1, name: 'Стартовый', amount: 500, bonus: 0, icon: '💰' },
+    { id: 2, name: 'Средний', amount: 5000, bonus: 1000, icon: '💎' },
+    { id: 3, name: 'Большой', amount: 50000, bonus: 15000, icon: '👑', popular: true },
+    { id: 4, name: 'Мега', amount: 500000, bonus: 200000, icon: '🚀' },
+    { id: 5, name: 'Гига', amount: 5000000, bonus: 2000000, icon: '⭐' },
+    { id: 6, name: 'Ультра', amount: 50000000, bonus: 25000000, icon: '🔥' },
+    { id: 7, name: 'Максимум', amount: 500000000, bonus: 100000000, icon: '💫' }
   ];
 
-  const achievements: Achievement[] = [
-    {
-      id: 1,
-      title: 'Первый Запуск',
-      description: 'Запустите первую игру',
-      icon: 'Rocket',
-      unlocked: true,
-      progress: 100
-    },
-    {
-      id: 2,
-      title: 'Игровой Марафон',
-      description: 'Сыграйте 10 часов',
-      icon: 'Trophy',
-      unlocked: true,
-      progress: 100
-    },
-    {
-      id: 3,
-      title: 'Коллекционер',
-      description: 'Добавьте 20 игр в избранное',
-      icon: 'Star',
-      unlocked: false,
-      progress: 65
-    },
-    {
-      id: 4,
-      title: 'Социальная Звезда',
-      description: 'Пригласите 5 друзей',
-      icon: 'Users',
-      unlocked: false,
-      progress: 40
-    }
-  ];
-
-  const donatePackages: DonatePackage[] = [
-    {
-      id: 1,
-      name: 'Стартовый',
-      coins: 500,
-      bonus: 0,
-      image: '💰'
-    },
-    {
-      id: 2,
-      name: 'Популярный',
-      coins: 1000,
-      bonus: 200,
-      popular: true,
-      image: '💎'
-    },
-    {
-      id: 3,
-      name: 'Премиум',
-      coins: 2500,
-      bonus: 750,
-      image: '👑'
-    },
-    {
-      id: 4,
-      name: 'Мега',
-      coins: 5000,
-      bonus: 2000,
-      image: '🚀'
-    }
-  ];
-
-  const [marketItems, setMarketItems] = useState<MarketItem[]>([
-    {
-      id: 1,
-      name: 'Космический Шлем',
-      type: 'accessory',
-      price: 250,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'rare',
-      owned: false
-    },
-    {
-      id: 2,
-      name: 'Неоновый Аватар',
-      type: 'avatar',
-      price: 500,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'epic',
-      owned: false
-    },
-    {
-      id: 3,
-      name: 'Плащ Героя',
-      type: 'skin',
-      price: 350,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'rare',
-      owned: true
-    },
-    {
-      id: 4,
-      name: 'Огненный Эффект',
-      type: 'effect',
-      price: 750,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'legendary',
-      owned: false
-    },
-    {
-      id: 5,
-      name: 'Киберочки',
-      type: 'accessory',
-      price: 150,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'common',
-      owned: false
-    },
-    {
-      id: 6,
-      name: 'Драконий Аватар',
-      type: 'avatar',
-      price: 1000,
-      image: 'https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png',
-      rarity: 'legendary',
-      owned: false
-    }
+  const [clothingItems, setClothingItems] = useState<ClothingItem[]>([
+    { id: 1, name: 'Красная Футболка', type: 'shirt', price: 100, image: '👕', color: '#ef4444', owned: false },
+    { id: 2, name: 'Синяя Футболка', type: 'shirt', price: 100, image: '👕', color: '#3b82f6', owned: false },
+    { id: 3, name: 'Зелёная Футболка', type: 'shirt', price: 100, image: '👕', color: '#22c55e', owned: true },
+    { id: 4, name: 'Чёрные Джинсы', type: 'pants', price: 150, image: '👖', color: '#1f2937', owned: false },
+    { id: 5, name: 'Синие Джинсы', type: 'pants', price: 150, image: '👖', color: '#3b82f6', owned: true },
+    { id: 6, name: 'Белые Штаны', type: 'pants', price: 150, image: '👖', color: '#f3f4f6', owned: false },
+    { id: 7, name: 'Красная Кепка', type: 'hat', price: 200, image: '🧢', color: '#ef4444', owned: false },
+    { id: 8, name: 'Синяя Кепка', type: 'hat', price: 200, image: '🧢', color: '#3b82f6', owned: false },
+    { id: 9, name: 'Корона', type: 'hat', price: 5000, image: '👑', color: '#fbbf24', owned: false },
+    { id: 10, name: 'Кроссовки', type: 'shoes', price: 250, image: '👟', color: '#ffffff', owned: true },
+    { id: 11, name: 'Ботинки', type: 'shoes', price: 300, image: '👞', color: '#78350f', owned: false },
+    { id: 12, name: 'Очки', type: 'accessory', price: 500, image: '🕶️', color: '#000000', owned: false }
   ]);
 
-  const playerStats = {
-    name: 'ProGamer2024',
-    level: 24,
-    totalGames: 156,
-    hoursPlayed: 342,
-    achievements: 28,
-    friends: 47
+  const [leaderboard, setLeaderboard] = useState<LeaderboardPlayer[]>([
+    { id: 1, username: 'RobloxKing', robux: 999999999, level: 100, avatar: '👑' },
+    { id: 2, username: 'MegaBuilder', robux: 500000000, level: 85, avatar: '🚀' },
+    { id: 3, username: 'ProGamer2024', robux: 250000000, level: 75, avatar: '⭐' },
+    { id: 4, username: 'DiamondPlayer', robux: 100000000, level: 60, avatar: '💎' },
+    { id: 5, username: 'CoolDude', robux: 50000000, level: 50, avatar: '😎' },
+    { id: 6, username: 'SpeedRunner', robux: 25000000, level: 45, avatar: '⚡' },
+    { id: 7, username: 'NinjaGamer', robux: 10000000, level: 40, avatar: '🥷' },
+    { id: 8, username: user.username, robux: user.robux, level: user.level, avatar: '🎮' }
+  ]);
+
+  const handleLogin = () => {
+    if (username.length >= 3 && password.length >= 4) {
+      setUser({ ...user, username });
+      setIsLoggedIn(true);
+      toast.success(`Добро пожаловать, ${username}! 🎉`);
+    } else {
+      toast.error('Логин должен быть от 3 символов, пароль от 4');
+    }
   };
 
-  const rarityColors = {
-    common: 'bg-gray-500',
-    rare: 'bg-blue-500',
-    epic: 'bg-purple-500',
-    legendary: 'bg-gradient-to-r from-yellow-400 to-orange-500'
-  };
-
-  const rarityLabels = {
-    common: 'Обычный',
-    rare: 'Редкий',
-    epic: 'Эпический',
-    legendary: 'Легендарный'
+  const handleRegister = () => {
+    if (username.length >= 3 && password.length >= 4) {
+      setUser({ ...user, username, robux: 10000 });
+      setIsLoggedIn(true);
+      toast.success(`Регистрация успешна! Получено 10,000 Robux! 🎁`);
+    } else {
+      toast.error('Логин должен быть от 3 символов, пароль от 4');
+    }
   };
 
   const handleClaimDaily = () => {
-    const reward = 100 + dailyStreak * 50;
-    setCoins(coins + reward);
-    setDailyStreak(dailyStreak + 1);
-    toast.success(`🎁 Получено ${reward} FreeCoins! Серия: ${dailyStreak + 1} дней`);
+    const reward = Math.floor(Math.random() * (1000000 - 100000 + 1)) + 100000;
+    setUser({ ...user, robux: user.robux + reward, dailyStreak: user.dailyStreak + 1 });
+    toast.success(`🎁 Получено ${reward.toLocaleString()} Robux! Серия: ${user.dailyStreak + 1} дней`);
+    
+    updateLeaderboard(user.robux + reward);
   };
 
-  const handleGetDonate = (pkg: DonatePackage) => {
-    const totalCoins = pkg.coins + pkg.bonus;
-    setCoins(coins + totalCoins);
-    toast.success(`🎉 Получено ${totalCoins} FreeCoins бесплатно!`);
+  const handleGetRobux = (pkg: RobuxPackage) => {
+    const total = pkg.amount + pkg.bonus;
+    setUser({ ...user, robux: user.robux + total });
+    toast.success(`💎 Получено ${total.toLocaleString()} Robux бесплатно!`);
+    
+    updateLeaderboard(user.robux + total);
   };
 
-  const handleBuyItem = (item: MarketItem) => {
+  const handleBuyClothing = (item: ClothingItem) => {
     if (item.owned) {
       toast.info('У вас уже есть этот предмет!');
       return;
     }
-    if (coins < item.price) {
-      toast.error('Недостаточно FreeCoins!');
+    if (user.robux < item.price) {
+      toast.error('Недостаточно Robux!');
       return;
     }
-    setCoins(coins - item.price);
-    setMarketItems(marketItems.map(i => i.id === item.id ? { ...i, owned: true } : i));
+    
+    setUser({ ...user, robux: user.robux - item.price });
+    setClothingItems(clothingItems.map(i => i.id === item.id ? { ...i, owned: true } : i));
     toast.success(`✨ Куплено: ${item.name}!`);
   };
 
+  const handleEquipClothing = (item: ClothingItem) => {
+    if (!item.owned) {
+      toast.error('Сначала купите этот предмет!');
+      return;
+    }
+    
+    setSelectedClothing({ ...selectedClothing, [item.type]: item });
+    toast.success(`Надето: ${item.name}`);
+  };
+
+  const updateLeaderboard = (newRobux: number) => {
+    const newLeaderboard = leaderboard.map(p => 
+      p.username === user.username ? { ...p, robux: newRobux } : p
+    ).sort((a, b) => b.robux - a.robux);
+    
+    setLeaderboard(newLeaderboard);
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-4 border-white shadow-2xl rounded-3xl">
+          <CardHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-4xl">🎮</span>
+              </div>
+            </div>
+            <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              ROBLOX
+            </CardTitle>
+            <p className="text-muted-foreground">Бесплатные Robux ждут тебя!</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Tabs value={showLogin ? 'login' : 'register'} onValueChange={(v) => setShowLogin(v === 'login')}>
+              <div className="grid grid-cols-2 gap-2 mb-6 bg-muted p-1 rounded-xl">
+                <Button 
+                  variant={showLogin ? 'default' : 'ghost'}
+                  onClick={() => setShowLogin(true)}
+                  className="rounded-lg"
+                >
+                  Вход
+                </Button>
+                <Button 
+                  variant={!showLogin ? 'default' : 'ghost'}
+                  onClick={() => setShowLogin(false)}
+                  className="rounded-lg"
+                >
+                  Регистрация
+                </Button>
+              </div>
+              
+              {showLogin ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="username">Логин</Label>
+                    <Input 
+                      id="username" 
+                      placeholder="Введите логин" 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Пароль</Label>
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="Введите пароль"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white font-bold py-6 text-lg rounded-full"
+                    onClick={handleLogin}
+                  >
+                    Войти
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="new-username">Логин</Label>
+                    <Input 
+                      id="new-username" 
+                      placeholder="Придумайте логин" 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-password">Пароль</Label>
+                    <Input 
+                      id="new-password" 
+                      type="password" 
+                      placeholder="Придумайте пароль"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Badge className="w-full justify-center py-2 bg-green-500 text-white border-0">
+                    🎁 Бонус: 10,000 Robux при регистрации!
+                  </Badge>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:opacity-90 text-white font-bold py-6 text-lg rounded-full"
+                    onClick={handleRegister}
+                  >
+                    Зарегистрироваться
+                  </Button>
+                </div>
+              )}
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <Icon name="Gamepad2" className="text-white" size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🎮</span>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                FreePlay
+              <h1 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ROBLOX
               </h1>
             </div>
-            <nav className="hidden md:flex items-center gap-6">
-              <Button variant="ghost" className="font-medium">
-                <Icon name="Home" className="mr-2" size={18} />
-                Главная
-              </Button>
-              <Button variant="ghost" className="font-medium">
-                <Icon name="Compass" className="mr-2" size={18} />
-                Обзор
-              </Button>
-              <Button variant="ghost" className="font-medium">
-                <Icon name="Library" className="mr-2" size={18} />
-                Библиотека
-              </Button>
-            </nav>
+            
             <div className="flex items-center gap-3">
-              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 px-4 py-2 text-base font-bold">
-                <Icon name="Coins" className="mr-2" size={18} />
-                {coins.toLocaleString()}
+              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 px-6 py-3 text-lg font-bold shadow-lg">
+                <Icon name="Coins" className="mr-2" size={20} />
+                {user.robux.toLocaleString()} R$
               </Badge>
-              <Button variant="outline" size="icon" className="rounded-full">
-                <Icon name="Bell" size={20} />
+              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 px-4 py-2">
+                Ур. {user.level}
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setIsLoggedIn(false);
+                  toast.info('Вы вышли из аккаунта');
+                }}
+              >
+                Выход
               </Button>
-              <Avatar className="border-2 border-primary cursor-pointer">
-                <AvatarImage src="https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png" />
-                <AvatarFallback>PG</AvatarFallback>
-              </Avatar>
             </div>
           </div>
         </div>
@@ -328,187 +312,237 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-8 bg-white p-1 rounded-2xl shadow-sm">
-            <TabsTrigger value="games" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-              <Icon name="Gamepad2" className="mr-2" size={18} />
-              Игры
-            </TabsTrigger>
-            <TabsTrigger value="market" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-              <Icon name="ShoppingBag" className="mr-2" size={18} />
-              Маркетплейс
-            </TabsTrigger>
-            <TabsTrigger value="donate" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-              <Icon name="Gift" className="mr-2" size={18} />
-              Донат
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-              <Icon name="User" className="mr-2" size={18} />
-              Профиль
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-8 bg-white p-1 rounded-2xl shadow-md grid grid-cols-5 gap-1 max-w-4xl mx-auto">
+            <Button
+              variant={activeTab === 'shop' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('shop')}
+              className="rounded-xl flex items-center justify-center gap-2"
+            >
+              <Icon name="ShoppingBag" size={18} />
+              <span className="hidden sm:inline">Магазин</span>
+            </Button>
+            <Button
+              variant={activeTab === 'avatar' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('avatar')}
+              className="rounded-xl flex items-center justify-center gap-2"
+            >
+              <Icon name="User" size={18} />
+              <span className="hidden sm:inline">Персонаж</span>
+            </Button>
+            <Button
+              variant={activeTab === 'robux' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('robux')}
+              className="rounded-xl flex items-center justify-center gap-2"
+            >
+              <Icon name="Coins" size={18} />
+              <span className="hidden sm:inline">Robux</span>
+            </Button>
+            <Button
+              variant={activeTab === 'leaderboard' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('leaderboard')}
+              className="rounded-xl flex items-center justify-center gap-2"
+            >
+              <Icon name="Trophy" size={18} />
+              <span className="hidden sm:inline">Лидеры</span>
+            </Button>
+            <Button
+              variant={activeTab === 'profile' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('profile')}
+              className="rounded-xl flex items-center justify-center gap-2"
+            >
+              <Icon name="Settings" size={18} />
+              <span className="hidden sm:inline">Профиль</span>
+            </Button>
+          </div>
 
-          <TabsContent value="games" className="space-y-6">
-            <div className="bg-gradient-to-r from-primary to-secondary rounded-3xl p-8 md:p-12 text-white shadow-xl">
-              <div className="max-w-2xl">
-                <Badge className="mb-4 bg-white/20 hover:bg-white/30 text-white border-0">
-                  🎮 Все игры бесплатно
-                </Badge>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                  Играй без границ!
-                </h2>
-                <p className="text-lg opacity-90 mb-6">
-                  Тысячи бесплатных игр. Никаких покупок. Никаких подписок. Только веселье!
-                </p>
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 rounded-full font-semibold">
-                  Начать играть
-                  <Icon name="ArrowRight" className="ml-2" size={20} />
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-bold mb-6">🔥 Популярные игры</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {games.map((game) => (
-                  <Card key={game.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary rounded-3xl">
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={game.image}
-                        alt={game.title}
-                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <Badge className="absolute top-4 left-4 bg-white/90 text-foreground hover:bg-white">
-                        {game.category}
-                      </Badge>
-                    </div>
-                    <CardContent className="p-5">
-                      <h4 className="font-bold text-lg mb-1">{game.title}</h4>
-                      <p className="text-sm text-muted-foreground mb-3">by {game.author}</p>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-1 text-yellow-500">
-                          <Icon name="Star" size={16} fill="currentColor" />
-                          <span className="text-sm font-semibold text-foreground">{game.rating}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Icon name="Users" size={16} />
-                          <span className="text-sm">{(game.plays / 1000).toFixed(1)}k</span>
-                        </div>
-                      </div>
-                      <Button className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90">
-                        <Icon name="Play" className="mr-2" size={18} />
-                        Играть
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="market" className="space-y-6">
-            <Card className="border-2 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+          <TabsContent value="shop" className="space-y-6">
+            <Card className="border-4 rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-xl">
               <CardContent className="p-8">
-                <h2 className="text-3xl font-bold mb-2">🛍️ Маркетплейс</h2>
-                <p className="text-lg opacity-90">Покупай крутые вещи за FreeCoins!</p>
+                <h2 className="text-4xl font-black mb-2">🛍️ Магазин Одежды</h2>
+                <p className="text-xl opacity-90">Создай уникальный образ для своего персонажа!</p>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {marketItems.map((item) => (
-                <Card key={item.id} className="overflow-hidden border-2 rounded-3xl hover:shadow-xl transition-all duration-300">
-                  <div className="relative">
-                    <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
-                    <Badge className={`absolute top-4 right-4 ${rarityColors[item.rarity]} text-white border-0`}>
-                      {rarityLabels[item.rarity]}
-                    </Badge>
-                    {item.owned && (
-                      <Badge className="absolute top-4 left-4 bg-green-500 text-white border-0">
-                        <Icon name="Check" className="mr-1" size={14} />
-                        В инвентаре
-                      </Badge>
-                    )}
+            <div className="grid gap-4">
+              {['shirt', 'pants', 'hat', 'shoes', 'accessory'].map((type) => (
+                <div key={type}>
+                  <h3 className="text-2xl font-bold mb-4 capitalize">
+                    {type === 'shirt' ? '👕 Футболки' : 
+                     type === 'pants' ? '👖 Штаны' : 
+                     type === 'hat' ? '🧢 Головные уборы' : 
+                     type === 'shoes' ? '👟 Обувь' : 
+                     '✨ Аксессуары'}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {clothingItems.filter(item => item.type === type).map((item) => (
+                      <Card key={item.id} className="border-2 rounded-2xl hover:shadow-xl transition-all">
+                        <CardContent className="p-4 text-center">
+                          <div 
+                            className="text-6xl mb-3 p-4 rounded-xl"
+                            style={{ backgroundColor: item.color + '20' }}
+                          >
+                            {item.image}
+                          </div>
+                          <h4 className="font-bold text-sm mb-2">{item.name}</h4>
+                          <div className="flex items-center justify-center gap-1 text-yellow-600 font-bold mb-3">
+                            <Icon name="Coins" size={16} />
+                            {item.price.toLocaleString()}
+                          </div>
+                          {item.owned ? (
+                            <Button 
+                              size="sm" 
+                              className="w-full bg-green-500 hover:bg-green-600"
+                              onClick={() => handleEquipClothing(item)}
+                            >
+                              Надеть
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => handleBuyClothing(item)}
+                            >
+                              Купить
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <CardContent className="p-5">
-                    <h4 className="font-bold text-lg mb-1">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground mb-4 capitalize">{item.type === 'avatar' ? 'Аватар' : item.type === 'skin' ? 'Скин' : item.type === 'accessory' ? 'Аксессуар' : 'Эффект'}</p>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2 text-yellow-500 font-bold text-lg">
-                        <Icon name="Coins" size={20} />
-                        {item.price}
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                      onClick={() => handleBuyItem(item)}
-                      disabled={item.owned}
-                    >
-                      {item.owned ? (
-                        <>
-                          <Icon name="Check" className="mr-2" size={18} />
-                          Куплено
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="ShoppingCart" className="mr-2" size={18} />
-                          Купить
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
+                </div>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="donate" className="space-y-6">
-            <Card className="border-2 rounded-3xl overflow-hidden">
-              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-8 text-white">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-6xl">🎁</div>
+          <TabsContent value="avatar" className="space-y-6">
+            <Card className="border-4 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-3xl">👤 Мой Персонаж</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="flex-1">
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-12 text-center">
+                      <div className="text-9xl mb-4">
+                        {selectedClothing.hat?.image || ''}
+                      </div>
+                      <div className="text-9xl mb-4">
+                        {selectedClothing.shirt?.image || '🧍'}
+                      </div>
+                      <div className="text-9xl mb-4">
+                        {selectedClothing.pants?.image || ''}
+                      </div>
+                      <div className="text-9xl">
+                        {selectedClothing.shoes?.image || ''}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <h3 className="text-2xl font-bold mb-6">Экипированная одежда:</h3>
+                    {selectedClothing.hat && (
+                      <Card className="border-2">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <span className="text-4xl">{selectedClothing.hat.image}</span>
+                          <div>
+                            <p className="font-bold">{selectedClothing.hat.name}</p>
+                            <p className="text-sm text-muted-foreground">Головной убор</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {selectedClothing.shirt && (
+                      <Card className="border-2">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <span className="text-4xl">{selectedClothing.shirt.image}</span>
+                          <div>
+                            <p className="font-bold">{selectedClothing.shirt.name}</p>
+                            <p className="text-sm text-muted-foreground">Верх</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {selectedClothing.pants && (
+                      <Card className="border-2">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <span className="text-4xl">{selectedClothing.pants.image}</span>
+                          <div>
+                            <p className="font-bold">{selectedClothing.pants.name}</p>
+                            <p className="text-sm text-muted-foreground">Низ</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {selectedClothing.shoes && (
+                      <Card className="border-2">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <span className="text-4xl">{selectedClothing.shoes.image}</span>
+                          <div>
+                            <p className="font-bold">{selectedClothing.shoes.name}</p>
+                            <p className="text-sm text-muted-foreground">Обувь</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {Object.keys(selectedClothing).length === 0 && (
+                      <p className="text-muted-foreground text-center py-8">
+                        Купите и наденьте одежду в магазине!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="robux" className="space-y-6">
+            <Card className="border-4 rounded-3xl overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-white">
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="text-7xl">🎁</div>
                   <div>
-                    <h2 className="text-3xl font-bold mb-2">Ежедневная Награда</h2>
-                    <p className="text-lg opacity-90">Серия: {dailyStreak} дней подряд</p>
+                    <h2 className="text-4xl font-black mb-2">Ежедневная Награда</h2>
+                    <p className="text-xl opacity-90">Серия: {user.dailyStreak} дней подряд</p>
                   </div>
                 </div>
                 <Button 
                   size="lg" 
-                  className="bg-white text-orange-500 hover:bg-white/90 rounded-full font-bold"
+                  className="bg-white text-green-600 hover:bg-gray-100 rounded-full font-black text-xl px-8 py-6"
                   onClick={handleClaimDaily}
                 >
-                  Забрать {100 + dailyStreak * 50} FreeCoins
-                  <Icon name="Gift" className="ml-2" size={20} />
+                  Получить 100,000 - 1,000,000 Robux
+                  <Icon name="Gift" className="ml-2" size={24} />
                 </Button>
               </div>
             </Card>
 
             <div>
-              <h3 className="text-2xl font-bold mb-6">💎 Бесплатный Донат</h3>
-              <p className="text-muted-foreground mb-6">Получи валюту абсолютно бесплатно! Никаких платежей!</p>
+              <h3 className="text-3xl font-black mb-6">💎 Бесплатные Robux</h3>
+              <p className="text-lg text-muted-foreground mb-6">Получи любое количество Robux абсолютно бесплатно!</p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {donatePackages.map((pkg) => (
-                  <Card key={pkg.id} className={`overflow-hidden rounded-3xl border-2 transition-all duration-300 ${pkg.popular ? 'border-primary shadow-xl scale-105' : 'hover:shadow-xl'}`}>
+                {robuxPackages.map((pkg) => (
+                  <Card key={pkg.id} className={`overflow-hidden rounded-3xl border-4 transition-all ${pkg.popular ? 'border-purple-500 shadow-2xl scale-105' : 'border-gray-200 hover:shadow-xl'}`}>
                     {pkg.popular && (
-                      <div className="bg-gradient-to-r from-primary to-secondary text-white text-center py-2 font-bold text-sm">
+                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 font-black">
                         ⭐ ПОПУЛЯРНЫЙ
                       </div>
                     )}
                     <CardContent className="p-6 text-center">
-                      <div className="text-6xl mb-4">{pkg.image}</div>
-                      <h4 className="font-bold text-xl mb-2">{pkg.name}</h4>
-                      <div className="text-3xl font-bold mb-2 text-yellow-500">
-                        {pkg.coins.toLocaleString()}
+                      <div className="text-7xl mb-4">{pkg.icon}</div>
+                      <h4 className="font-black text-2xl mb-3">{pkg.name}</h4>
+                      <div className="text-4xl font-black mb-2 bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                        {pkg.amount.toLocaleString()}
                       </div>
                       {pkg.bonus > 0 && (
-                        <Badge className="mb-4 bg-green-500 text-white border-0">
-                          +{pkg.bonus} бонус
+                        <Badge className="mb-4 bg-green-500 text-white border-0 text-sm">
+                          +{pkg.bonus.toLocaleString()} бонус
                         </Badge>
                       )}
                       <div className="text-sm text-muted-foreground mb-4">
-                        Итого: {(pkg.coins + pkg.bonus).toLocaleString()} FreeCoins
+                        Итого: {(pkg.amount + pkg.bonus).toLocaleString()} R$
                       </div>
                       <Button 
-                        className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                        onClick={() => handleGetDonate(pkg)}
+                        className="w-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 font-bold"
+                        onClick={() => handleGetRobux(pkg)}
                       >
                         Получить бесплатно
                       </Button>
@@ -519,114 +553,126 @@ const Index = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="leaderboard" className="space-y-6">
+            <Card className="border-4 rounded-3xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-xl">
+              <CardContent className="p-8">
+                <h2 className="text-4xl font-black mb-2 flex items-center gap-3">
+                  <Icon name="Trophy" size={40} />
+                  Таблица Лидеров
+                </h2>
+                <p className="text-xl opacity-90">Топ игроков по количеству Robux</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-4 rounded-3xl">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {leaderboard.map((player, index) => (
+                    <Card 
+                      key={player.id} 
+                      className={`border-2 ${player.username === user.username ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-6">
+                          <div className={`text-4xl font-black ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-600' : 'text-gray-600'}`}>
+                            #{index + 1}
+                          </div>
+                          <div className="text-5xl">{player.avatar}</div>
+                          <div className="flex-1">
+                            <h4 className="text-2xl font-bold mb-1">{player.username}</h4>
+                            <div className="flex items-center gap-4 text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Icon name="Coins" size={18} />
+                                {player.robux.toLocaleString()} R$
+                              </span>
+                              <Badge variant="outline">Уровень {player.level}</Badge>
+                            </div>
+                          </div>
+                          {index === 0 && <Icon name="Trophy" className="text-yellow-500" size={40} />}
+                          {index === 1 && <Icon name="Medal" className="text-gray-400" size={40} />}
+                          {index === 2 && <Icon name="Award" className="text-orange-600" size={40} />}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="profile" className="space-y-6">
-            <Card className="border-2 rounded-3xl overflow-hidden">
-              <div className="h-32 bg-gradient-to-r from-primary to-secondary"></div>
-              <CardContent className="relative px-6 pb-6">
-                <Avatar className="absolute -top-16 left-6 w-32 h-32 border-4 border-white">
-                  <AvatarImage src="https://v3b.fal.media/files/b/monkey/cLC8znD5tVwcnq-Ns9mlI_output.png" />
-                  <AvatarFallback>PG</AvatarFallback>
-                </Avatar>
-                <div className="pt-20">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h2 className="text-3xl font-bold mb-2">{playerStats.name}</h2>
-                      <Badge className="bg-gradient-to-r from-primary to-secondary text-white border-0">
-                        Уровень {playerStats.level}
-                      </Badge>
-                    </div>
-                    <Button className="rounded-full">
-                      <Icon name="Settings" className="mr-2" size={18} />
-                      Настройки
-                    </Button>
+            <Card className="border-4 rounded-3xl overflow-hidden">
+              <div className="h-40 bg-gradient-to-r from-blue-600 to-purple-600"></div>
+              <CardContent className="relative px-8 pb-8">
+                <div className="absolute -top-20 left-8">
+                  <div className="w-40 h-40 bg-gradient-to-br from-red-500 to-orange-500 rounded-3xl flex items-center justify-center text-7xl border-8 border-white shadow-2xl">
+                    🎮
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    <div className="bg-muted rounded-2xl p-4 text-center">
-                      <Icon name="Gamepad2" className="mx-auto mb-2 text-primary" size={24} />
-                      <div className="text-2xl font-bold">{playerStats.totalGames}</div>
-                      <div className="text-sm text-muted-foreground">Игр сыграно</div>
-                    </div>
-                    <div className="bg-muted rounded-2xl p-4 text-center">
-                      <Icon name="Clock" className="mx-auto mb-2 text-primary" size={24} />
-                      <div className="text-2xl font-bold">{playerStats.hoursPlayed}</div>
-                      <div className="text-sm text-muted-foreground">Часов в игре</div>
-                    </div>
-                    <div className="bg-muted rounded-2xl p-4 text-center">
-                      <Icon name="Trophy" className="mx-auto mb-2 text-primary" size={24} />
-                      <div className="text-2xl font-bold">{playerStats.achievements}</div>
-                      <div className="text-sm text-muted-foreground">Достижений</div>
-                    </div>
-                    <div className="bg-muted rounded-2xl p-4 text-center">
-                      <Icon name="Users" className="mx-auto mb-2 text-primary" size={24} />
-                      <div className="text-2xl font-bold">{playerStats.friends}</div>
-                      <div className="text-sm text-muted-foreground">Друзей</div>
-                    </div>
+                </div>
+                <div className="pt-24">
+                  <h2 className="text-4xl font-black mb-2">{user.username}</h2>
+                  <div className="flex gap-3 mb-8">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-lg px-4 py-2">
+                      Уровень {user.level}
+                    </Badge>
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-lg px-4 py-2">
+                      {user.robux.toLocaleString()} R$
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card className="border-2">
+                      <CardContent className="p-6 text-center">
+                        <Icon name="Coins" className="mx-auto mb-3 text-yellow-500" size={40} />
+                        <div className="text-3xl font-black mb-1">{user.robux.toLocaleString()}</div>
+                        <div className="text-muted-foreground">Robux</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2">
+                      <CardContent className="p-6 text-center">
+                        <Icon name="Shirt" className="mx-auto mb-3 text-purple-500" size={40} />
+                        <div className="text-3xl font-black mb-1">{clothingItems.filter(i => i.owned).length}</div>
+                        <div className="text-muted-foreground">Предметов одежды</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2">
+                      <CardContent className="p-6 text-center">
+                        <Icon name="Flame" className="mx-auto mb-3 text-orange-500" size={40} />
+                        <div className="text-3xl font-black mb-1">{user.dailyStreak}</div>
+                        <div className="text-muted-foreground">Дней подряд</div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 rounded-3xl">
+            <Card className="border-4 rounded-3xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Package" size={24} />
-                  Мой инвентарь
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Icon name="Package" size={28} />
+                  Мой Гардероб
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {marketItems.filter(item => item.owned).map((item) => (
-                    <div key={item.id} className="border-2 rounded-2xl p-4 text-center">
-                      <img src={item.image} alt={item.name} className="w-full h-24 object-cover rounded-xl mb-2" />
-                      <p className="font-semibold text-sm">{item.name}</p>
-                      <Badge className={`mt-2 ${rarityColors[item.rarity]} text-white border-0 text-xs`}>
-                        {rarityLabels[item.rarity]}
-                      </Badge>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {clothingItems.filter(item => item.owned).map((item) => (
+                    <Card key={item.id} className="border-2">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-5xl mb-2">{item.image}</div>
+                        <p className="font-bold text-sm">{item.name}</p>
+                      </CardContent>
+                    </Card>
                   ))}
-                  {marketItems.filter(item => item.owned).length === 0 && (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
-                      <Icon name="Package" className="mx-auto mb-2" size={48} />
-                      <p>Инвентарь пуст. Купите вещи в маркетплейсе!</p>
+                  {clothingItems.filter(item => item.owned).length === 0 && (
+                    <div className="col-span-full text-center py-12 text-muted-foreground">
+                      <Icon name="ShoppingBag" className="mx-auto mb-4" size={64} />
+                      <p className="text-xl">Купите одежду в магазине!</p>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
-
-            <div>
-              <h3 className="text-2xl font-bold mb-6">🏆 Достижения</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {achievements.map((achievement) => (
-                  <Card key={achievement.id} className={`rounded-2xl border-2 ${achievement.unlocked ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                    <CardContent className="p-5">
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${achievement.unlocked ? 'bg-gradient-to-br from-primary to-secondary' : 'bg-muted'}`}>
-                          <Icon 
-                            name={achievement.icon as any} 
-                            className={achievement.unlocked ? 'text-white' : 'text-muted-foreground'} 
-                            size={24} 
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold mb-1">{achievement.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">{achievement.description}</p>
-                          <div className="space-y-2">
-                            <Progress value={achievement.progress} className="h-2" />
-                            <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">{achievement.progress}%</span>
-                              {achievement.unlocked && (
-                                <span className="text-primary font-semibold">Получено!</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </main>
